@@ -39,7 +39,7 @@ add_executable(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
 )
 
-pico_set_linker_script(131_hello_usb
+pico_set_linker_script(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/memmap_rp2040.ld
 )
 

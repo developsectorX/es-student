@@ -13,7 +13,7 @@ add_executable(112_blink
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
 )
 
-target_link_libraries(112_blink
+target_link_libraries(${PROJECT_NAME}
     pico_stdlib
 )
 

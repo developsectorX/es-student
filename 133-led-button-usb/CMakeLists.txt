@@ -12,9 +12,11 @@ pico_sdk_init()
 add_executable(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
 )
-pico_set_linker_script(133_led_button_usb
+
+pico_set_linker_script(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/memmap_rp2040.ld
 )
+
 # Обязательно линкуем pico_stdlib
 target_link_libraries(${PROJECT_NAME}
     pico_stdlib
