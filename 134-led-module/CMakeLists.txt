@@ -19,8 +19,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/led
     ${CMAKE_CURRENT_SOURCE_DIR}/logging
 )
+
+pico_set_linker_script(134_led_module
+    ${CMAKE_CURRENT_SOURCE_DIR}/memmap_rp2040.ld
+)
+
 # Обязательно линкуем pico_stdlib
 target_link_libraries(${PROJECT_NAME}
+
     pico_stdlib
 )
 
