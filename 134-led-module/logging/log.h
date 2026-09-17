@@ -2,8 +2,7 @@
 
 #include <stdio.h>
 
-#define DEVICE_NAME "es-led-module"
-#define FIRMWARE_VERSION "1.0.0"
+
 
 void log_version(void);
 void log_prefix(const char *level, const char *function, int line);
