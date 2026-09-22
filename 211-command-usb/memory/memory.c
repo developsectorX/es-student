@@ -56,14 +56,14 @@ void mem_info(void)
     row("stack", (uintptr_t)&__StackBottom, (uintptr_t)&__StackTop);
 
     // --- Итоги ---
-    printf("\n");
+    printf("total\n");
 
     uintptr_t img_start = (uintptr_t)&__flash_binary_start;
     uintptr_t img_end = (uintptr_t)&__flash_binary_end;
     uintptr_t flash_end = XIP_BASE + PICO_FLASH_SIZE_BYTES;
 
-    printf("image in flash: %u bytes\n", (unsigned)(img_end - img_start));
-    printf("free in flash:  %u bytes of %u\n",
+    printf("flash image: %u bytes\n", (unsigned)(img_end - img_start));
+    printf("flash free:  %u bytes of %u\n",
         (unsigned)(flash_end - img_end),
         (unsigned)PICO_FLASH_SIZE_BYTES);
 
