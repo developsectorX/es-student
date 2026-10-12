@@ -3,7 +3,7 @@
 устройство: 2e8a:000a
 серийный номер: 53032847211F4C1C
 порт: COM4
-начало: 2026-10-12T20:21:26
+начало: 2026-10-12T20:35:26
    0.001 --> main_time_reset
    0.001 <-- main_time_reset
    0.002 <-- dbg read_line:137 got main_time_reset
@@ -20,7 +20,7 @@
   34.719 --> main_time_exec
   34.720 <-- main_time_exec
   34.720 <-- dbg read_line:137 got main_time_exec
-  34.721 <-- iteration avg 2.57 us, max 4699014 us
+  34.721 <-- iteration avg 2.58 us, max 4699014 us
   44.733 --> main_time_exec
   44.734 <-- main_time_exec
   44.734 <-- dbg read_line:137 got main_time_exec
