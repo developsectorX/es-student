@@ -1,25 +1,20 @@
 #include <stdio.h>
+#include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
-#include "hardware/regs/addressmap.h"
-#include "hardware/regs/sio.h"
 #include "led.h"
 #include "log.h"
 #include "device.h"
 #include "memory.h"
-#include <string.h>
-
+#include "command.h"
 #define LINE_SIZE 32
 
 
-
-typedef void (*command_handler_t)(void);
-
+const uint BUTTON_PIN = 15;
+const uint DEBOUNCE_MS = 20;
 char line[LINE_SIZE];
 uint line_length = 0;
 
-const uint BUTTON_PIN = 15;
-const uint DEBOUNCE_MS = 20;
 
 
 bool get_button_debounce(uint pin)
@@ -29,35 +24,25 @@ bool get_button_debounce(uint pin)
     return state && gpio_get(pin);
 }
 
-
-
-
-#define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
-
-
 void cmd_enable(void)
 {
-    // включаем светодиод и сообщаем новое состояние
-    // led_set(true);
-        LOG_INF("led %s\n", led_is_on() ? "on" : "off");
+    led_set(true);
+    LOG_INF("led %s\n", led_is_on() ? "on" : "off");
 }
 
 void cmd_disable(void)
 {
-    // выключаем светодиод и сообщаем новое состояние
-        led_set(false);
-        LOG_INF("led %s\n", led_is_on() ? "on" : "off");
+    led_set(false);
+    LOG_INF("led %s\n", led_is_on() ? "on" : "off");
 }
 
 void cmd_info(void)
 {
-    // печатаем паспорт устройства
     device_info();
 }
 
 void cmd_version(void)
 {
-    // печатаем строку журнала о версии прошивки
     log_version();
 }
 
@@ -66,33 +51,43 @@ void cmd_ping(void)
     printf("pong\n");
 }
 
-
 void cmd_mem_info(void)
 {
     mem_info();
 }
 
-
-
-struct command_t
+void cmd_fw_info(void)
 {
-    const char* name;
-    command_handler_t handler;
-};
+    fw_info();
+}
+
+void cmd_dev_info(void)
+{
+    dev_info();
+}
+
+void cmd_boot_info(void)
+{
+    boot_info();
+}
 
 const struct command_t commands[] = {
-    { "enable", cmd_enable },
-    { "disable", cmd_disable },
-    { "info", cmd_info },
-    { "version", cmd_version },
-    { "ping", cmd_ping },
+    { "enable",   cmd_enable   },
+    { "disable",  cmd_disable  },
+    { "info",     cmd_info     },
+    { "version",  cmd_version  },
+    { "ping",     cmd_ping     },
     { "mem_info", cmd_mem_info },
+    { "fw_info",  cmd_fw_info  },
+    { "dev_info", cmd_dev_info },
+    { "boot_info", cmd_boot_info },
 };
 
+const uint command_count = sizeof(commands) / sizeof(commands[0]);
 
-void handle_command(const char* command)
+void handle_command(const char *command)
 {
-    for (uint i = 0; i < COMMAND_COUNT; i++)
+    for (uint i = 0; i < command_count; i++)
     {
         if (strcmp(command, commands[i].name) == 0)
         {
@@ -107,7 +102,6 @@ void handle_command(const char* command)
 
     LOG_ERR("unknown command: %s\n", command);
 }
-
 
 void read_line(void)
 {
@@ -141,28 +135,19 @@ void read_line(void)
     }
 }
 
-
-
-
-
-
-int main()
+int main(void)
 {
- 
+    stdio_init_all();
+
+    led_init();
+
     gpio_init(BUTTON_PIN);
     gpio_set_dir(BUTTON_PIN, GPIO_IN);
     gpio_pull_up(BUTTON_PIN);
 
-    led_init();
-    stdio_init_all();
-
-
-
-    
     bool previous = false;
 
-
- while (1)
+    while (1)
     {
         bool current = get_button_debounce(BUTTON_PIN);
 
@@ -174,10 +159,6 @@ int main()
 
         previous = current;
 
-
         read_line();
-
-
     }
-
 }
