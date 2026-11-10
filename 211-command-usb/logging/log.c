@@ -1,5 +1,3 @@
-// log.c
-
 #include "log.h"
 #include "device.h"
 

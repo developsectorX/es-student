@@ -1,4 +1,5 @@
 #include "memory.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -26,69 +27,50 @@ int main(void);
 uint32_t data_variable = 100;
 uint32_t bss_variable;
 
-
-// Размеры ОЗУ и ПЗУ — из RP2040 Datasheet, раздел 2.2 Address Map
-#define SRAM_SIZE (264 * 1024)   // 264 КБ
-#define ROM_SIZE  (16 * 1024)    // 16 КБ
-
-static void row(const char* name, uintptr_t start, uintptr_t end)
+static void row(const char *name, uintptr_t start, uintptr_t end)
 {
     printf("%-10s 0x%08x 0x%08x %8u\n",
-        name, (unsigned)start, (unsigned)end, (unsigned)(end - start));
+           name, (unsigned)start, (unsigned)end, (unsigned)(end - start));
 }
 
 void mem_info(void)
 {
-    // --- Расчет размеров из символов компоновщика ---
-    unsigned boot2_sz = (unsigned)((uintptr_t)&__boot2_end__ - (uintptr_t)&__boot2_start__);
-    unsigned text_sz = (unsigned)((uintptr_t)&__etext - (uintptr_t)&__boot2_end__);
-    unsigned data_sz = (unsigned)((uintptr_t)&__data_end__ - (uintptr_t)&__data_start__);
-    unsigned bss_sz = (unsigned)((uintptr_t)&__bss_end__ - (uintptr_t)&__bss_start__);
-    unsigned heap_sz = (unsigned)((uintptr_t)&__HeapLimit - (uintptr_t)&__bss_end__);
-    unsigned stack_sz = (unsigned)((uintptr_t)&__StackTop - (uintptr_t)&__StackBottom);
+    printf("area       start      end        size\n");
 
-    unsigned flash_img_sz = boot2_sz + text_sz + data_sz;
-    unsigned flash_total_sz = (unsigned)PICO_FLASH_SIZE_BYTES;
-    unsigned flash_free_sz = flash_total_sz - flash_img_sz;
-    unsigned ram_used = data_sz + bss_sz;
-
-    // --- Вывод таблицы ---
-    printf("%-10s %-10s %-10s %8s\n", "area", "start", "end", "size");
-
-    // Железо
     row("flash", XIP_BASE, XIP_BASE + PICO_FLASH_SIZE_BYTES);
-    row("sram", SRAM_BASE, SRAM_BASE + SRAM_SIZE);
-    row("rom", ROM_BASE, ROM_BASE + ROM_SIZE);
+    row("sram", SRAM_BASE, SRAM_BASE + 264 * 1024);
+    row("rom", ROM_BASE, ROM_BASE + 16 * 1024);
 
-    // Секции Flash
     row("image", (uintptr_t)&__flash_binary_start, (uintptr_t)&__flash_binary_end);
     row("free", (uintptr_t)&__flash_binary_end, XIP_BASE + PICO_FLASH_SIZE_BYTES);
-
     row("boot2", (uintptr_t)&__boot2_start__, (uintptr_t)&__boot2_end__);
     row("text", (uintptr_t)&__boot2_end__, (uintptr_t)&__etext);
-    row("data flash", (uintptr_t)&__etext, (uintptr_t)&__etext + data_sz);
 
-    // Секции RAM
+    row("data flash", (uintptr_t)&__etext,
+        (uintptr_t)&__etext + ((uintptr_t)&__data_end__ - (uintptr_t)&__data_start__));
     row("data ram", (uintptr_t)&__data_start__, (uintptr_t)&__data_end__);
     row("bss", (uintptr_t)&__bss_start__, (uintptr_t)&__bss_end__);
     row("heap", (uintptr_t)&__bss_end__, (uintptr_t)&__HeapLimit);
     row("stack", (uintptr_t)&__StackBottom, (uintptr_t)&__StackTop);
 
-    // --- Вывод итогов  ---
+    unsigned boot2 = (unsigned)(&__boot2_end__ - &__boot2_start__);
+    unsigned text = (unsigned)(&__etext - &__boot2_end__);
+    unsigned data = (unsigned)(&__data_end__ - &__data_start__);
+    unsigned bss = (unsigned)(&__bss_end__ - &__bss_start__);
+    unsigned heap = (unsigned)(&__HeapLimit - &__bss_end__);
+    unsigned stack = (unsigned)(&__StackTop - &__StackBottom);
+
     printf("\ntotal\n");
-    printf("  flash image    %5u = boot2 %u + text %u + data %u\n",
-        flash_img_sz, boot2_sz, text_sz, data_sz);
-
-    printf("  flash free   %7u of %u\n",
-        flash_free_sz, flash_total_sz);
-
-    printf("  ram used        %5u = data %u + bss %u\n",
-        ram_used, data_sz, bss_sz);
-
-    printf("  ram free      %6u for heap and %u for stack\n",
-        heap_sz, stack_sz);
+    printf("  flash image    %u = boot2 %u + text %u + data %u\n",
+           boot2 + text + data, boot2, text, data);
+    printf("  flash free    %u of %u\n",
+           (unsigned)(PICO_FLASH_SIZE_BYTES - (boot2 + text + data)),
+           (unsigned)PICO_FLASH_SIZE_BYTES);
+    printf("  ram used        %u = data %u + bss %u\n",
+           data + bss, data, bss);
+    printf("  ram free       %u for heap and %u for stack\n",
+           heap, stack);
 }
-
 
 void fw_info(void)
 {

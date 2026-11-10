@@ -2,7 +2,6 @@
 
 #include "pico/types.h"
 
-
 typedef void (*command_handler_t)(void);
 
 struct command_t
