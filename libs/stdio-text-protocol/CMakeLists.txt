@@ -1,8 +1,11 @@
 add_library(stdio_text_protocol STATIC
-    src/stdio-text-protocol.c)
+    src/stdio-text-protocol.c
+)
 
 target_include_directories(stdio_text_protocol PUBLIC
-    include)
+    include
+)
 
 target_link_libraries(stdio_text_protocol PRIVATE
-    pico_stdlib)
+    pico_stdlib
+)
