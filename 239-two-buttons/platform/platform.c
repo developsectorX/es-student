@@ -1,31 +1,40 @@
-#include "pico/stdlib.h"
-#include <stdint.h>
 #include "platform.h"
+#include "pico/stdlib.h"
 
-#define BUTTON_2_PIN 14
-#define BUTTON_1_PIN 15
 #define LED_PIN 25
+#define BUTTON_1_PIN 15
+#define BUTTON_2_PIN 14
 
-static const uint8_t button_pins[PLATFORM_BUTTON_COUNT]={
- [PLATFORM_BUTTON_1]=BUTTON_1_PIN,
- [PLATFORM_BUTTON_2]=BUTTON_2_PIN,
-};
+void platform_init(void)
+{
+    stdio_init_all();
 
-void platform_led_set(bool on){gpio_put(LED_PIN,on);}
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
 
-bool platform_button_read(platform_button_t button){
- if((uint32_t)button>=PLATFORM_BUTTON_COUNT) return false;
- return !gpio_get(button_pins[button]);
+    gpio_init(BUTTON_1_PIN);
+    gpio_set_dir(BUTTON_1_PIN, GPIO_IN);
+    gpio_pull_up(BUTTON_1_PIN);
+
+    gpio_init(BUTTON_2_PIN);
+    gpio_set_dir(BUTTON_2_PIN, GPIO_IN);
+    gpio_pull_up(BUTTON_2_PIN);
+
 }
 
-void platform_init(void){
- stdio_init_all();
- gpio_init(LED_PIN);
- gpio_set_dir(LED_PIN,GPIO_OUT);
- for(uint32_t i=0;i<PLATFORM_BUTTON_COUNT;i++){
-  const uint pin=button_pins[i];
-  gpio_init(pin);
-  gpio_set_dir(pin,GPIO_IN);
-  gpio_pull_up(pin);
- }
+
+
+bool platform_button_read(platform_button_t button)
+{
+    switch (button)
+    {
+        case PLATFORM_BUTTON_1: return !gpio_get(BUTTON_1_PIN);
+        case PLATFORM_BUTTON_2: return !gpio_get(BUTTON_2_PIN);
+        default: return false;
+    }
+}
+
+void platform_led_set(bool on)
+{
+    gpio_put(LED_PIN, on);
 }
