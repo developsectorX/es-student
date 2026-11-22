@@ -6,11 +6,11 @@ target_include_directories(device PUBLIC
     include
 )
 
+target_compile_definitions(device PRIVATE
+    DEVICE_BOARD="${PICO_BOARD}"
+)
+
 target_link_libraries(device PRIVATE
     pico_stdlib
     pico_unique_id
-)
-
-target_compile_definitions(device PRIVATE
-    DEVICE_BOARD="pico"
 )

@@ -1,21 +1,20 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef enum {
-    PI_STATE_NOT_STARTED,
-    PI_STATE_RUNNING,
-    PI_STATE_DONE
-} pi_state_t;
+typedef struct
+{
+    double value;
+    uint64_t time_ms;
+} pi_result_t;
 
-void pi_task_init(void);
 bool pi_task_start(uint32_t terms);
 void pi_task_handle(void);
-pi_state_t pi_task_get_state(void);
 
-bool pi_task_get_result(double *value, uint64_t *duration_ms);
+bool pi_task_is_running(void);
+bool pi_task_is_done(void);
+bool pi_task_was_started(void);
 
-double pi_task_get_value(void);
-uint64_t pi_task_get_duration_ms(void);
+bool pi_task_get_result(pi_result_t *result);
 uint32_t pi_task_get_terms(void);

@@ -1,7 +1,5 @@
-add_library(logging STATIC
-    src/log.c
-)
+add_library(logging INTERFACE)
 
-target_include_directories(logging PUBLIC
+target_include_directories(logging INTERFACE
     include
 )

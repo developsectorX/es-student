@@ -1,13 +1,38 @@
-#include "pico/stdlib.h"
 #include "systime/systime.h"
 
-uint64_t systime_ms(void){return time_us_64()/1000;}
-uint64_t systime_us(void){return time_us_64();}
+#include "pico/stdlib.h"
 
-bool systime_period_elapsed(uint64_t *last_us,uint64_t period_us){
- uint64_t now_us=time_us_64();
- if(now_us-*last_us<period_us) return false;
- *last_us+=period_us;
- if(now_us-*last_us>=period_us) *last_us=now_us;
- return true;
+uint64_t systime_us(void)
+{
+    return time_us_64();
+}
+
+uint64_t systime_ms(void)
+{
+    return time_us_64() / 1000u;
+}
+
+bool systime_period_elapsed(uint64_t *last_us, uint64_t period_us)
+{
+    if (last_us == NULL)
+    {
+        return false;
+    }
+
+    uint64_t now = time_us_64();
+    if (now - *last_us < period_us)
+    {
+        return false;
+    }
+
+    // следующее срабатывание отсчитывается от прошлого
+    *last_us += period_us;
+
+    // если отстали больше чем на период, пропуски не догоняем
+    if (now - *last_us >= period_us)
+    {
+        *last_us = now;
+    }
+
+    return true;
 }

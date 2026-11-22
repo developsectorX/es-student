@@ -1,23 +1,34 @@
-#include "api.h"
-#include "api-commands.h"
+#include "api/api.h"
+
 #include <stdio.h>
 #include <string.h>
 
+#include "api/api-commands.h"
 
 void api_handle(const command_t *command)
 {
+    if (command == NULL)
+    {
+        return;
+    }
+
     if (command->truncated)
     {
-        printf("error: command longer than 63 characters or 4 arguments\n");
+        printf("error: command longer than 63 characters or 4 arguments\r\n");
+        return;
+    }
+
+    if (command->name == NULL)
+    {
         return;
     }
 
     if (strcmp(command->name, "help") == 0)
     {
-        printf("help             list of commands\n");
+        printf("help             list of commands\r\n");
         for (uint32_t i = 0; i < api_command_count; i++)
         {
-            printf("%-16s %s\n", api_commands[i].name, api_commands[i].help);
+            printf("%-16s %s\r\n", api_commands[i].name, api_commands[i].help);
         }
         return;
     }
@@ -31,5 +42,5 @@ void api_handle(const command_t *command)
         }
     }
 
-    printf("error: unknown command '%s', try help\n", command->name);
+    printf("error: unknown command '%s', try help\r\n", command->name);
 }
