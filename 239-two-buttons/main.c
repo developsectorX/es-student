@@ -1,16 +1,16 @@
-#include "api/api.h"
-#include "button-task/button-task.h"
+#include <stdio.h>
 #include "firmware.h"
-#include "led-task/led-task.h"
 #include "logging/log.h"
-#include "pi-task/pi-task.h"
-#include "platform/platform.h"
-#include "profiling/profiling.h"
 #include "stdio-text-protocol/stdio-text-protocol.h"
+#include "api/api.h"
+#include "platform/platform.h"
+#include "led-task/led-task.h"
+#include "button-task/button-task.h"
+#include "pi-task/pi-task.h"
+#include "profiling/profiling.h"
 
-typedef enum
-{
-    STOPWATCH_LOOP = 0,
+typedef enum {
+    STOPWATCH_LOOP,
     STOPWATCH_COMMAND,
     STOPWATCH_LED,
     STOPWATCH_BUTTON,
@@ -20,7 +20,6 @@ typedef enum
 int main(void)
 {
     platform_init();
-
     LOG_INF("%s %s\n", FIRMWARE_NAME, FIRMWARE_VERSION);
 
     profiling_stopwatch_init(STOPWATCH_LOOP, "loop");
@@ -31,11 +30,10 @@ int main(void)
 
     stdio_text_protocol_init();
     led_task_init();
+    pi_task_init();
 
-    // короткое нажатие первой кнопки — следующее состояние светодиода, долгое — мигание
-    button_task_init(PLATFORM_BUTTON_LED, led_task_next_state, led_task_blink);
-    // у второй кнопки долгого действия нет
-    button_task_init(PLATFORM_BUTTON_PERIOD, led_task_next_period, NULL);
+    button_task_init(PLATFORM_BUTTON_1, led_task_next_state);
+    button_task_init(PLATFORM_BUTTON_2, led_task_next_period);
 
     while (1)
     {
@@ -43,10 +41,7 @@ int main(void)
 
         profiling_start(STOPWATCH_COMMAND);
         const command_t *command = stdio_text_protocol_handle();
-        if (command != NULL)
-        {
-            api_handle(command);
-        }
+        if (command != NULL) api_handle(command);
         profiling_stop(STOPWATCH_COMMAND);
 
         profiling_start(STOPWATCH_LED);

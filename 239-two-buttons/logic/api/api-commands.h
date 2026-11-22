@@ -1,16 +1,12 @@
 #pragma once
 
 #include <stdint.h>
-
 #include "stdio-text-protocol/stdio-text-protocol.h"
 
-typedef void (*api_callback_t)(const command_t *command);
-
-typedef struct
-{
+typedef struct {
     const char *name;
     const char *help;
-    api_callback_t callback;
+    void (*callback)(const command_t *);
 } api_command_t;
 
 extern const api_command_t api_commands[];

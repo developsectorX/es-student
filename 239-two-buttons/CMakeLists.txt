@@ -1,32 +1,36 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
+
+set(PICO_BOARD pico)
+set(PICO_PLATFORM rp2040)
 
 include(pico_sdk_import.cmake)
 
-project(239_two_buttons C CXX ASM)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+project(239_two_buttons)
 
 pico_sdk_init()
 
 add_compile_options(-Wall)
 
-# libs лежит вне папки проекта: второй аргумент задаёт каталог сборки
 add_subdirectory(../libs ${CMAKE_BINARY_DIR}/libs)
 
-# железо прибора: единственное место проекта с SDK
+# --- Железо прибора ---
 add_library(platform STATIC
     platform/platform.c
 )
 
 target_include_directories(platform PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(platform PRIVATE
     pico_stdlib
 )
 
-# логика прибора: задачи и команды, без SDK
+target_compile_definitions(platform PRIVATE
+    DEVICE_BOARD="${PICO_BOARD}"
+)
+
+# --- Логика прибора ---
 add_library(logic STATIC
     logic/api/api.c
     logic/api/api-callbacks.c
@@ -36,43 +40,37 @@ add_library(logic STATIC
 )
 
 target_include_directories(logic PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/logic
-    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/logic
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(logic PRIVATE
+    device
+    logging
+    profiling
+    systime
+    platform
 )
 
 target_link_libraries(logic PUBLIC
     stdio_text_protocol
 )
 
-target_link_libraries(logic PRIVATE
-    systime
-    profiling
-    device
-    logging
-    platform
-)
-
 add_executable(${PROJECT_NAME}
     main.c
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/logic
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME}
     pico_stdlib
     platform
     logic
-    stdio_text_protocol
-    systime
-    profiling
-    device
     logging
+    device
+    profiling
+    systime
+    stdio_text_protocol
 )
 
-# выключатель профилирования: 0 — вызовов секундомеров в образе нет
 target_compile_definitions(profiling PUBLIC
     PROFILING_ENABLED=1
 )

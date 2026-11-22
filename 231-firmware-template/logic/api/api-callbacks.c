@@ -9,8 +9,8 @@
 #include "button-task/button-task.h"
 #include "pi-task/pi-task.h"
 #include "profiling/profiling.h"
-#include "systime/systime.h"
 #include "platform/platform.h"
+#include "systime/systime.h"
 
 #define DEFAULT_PI_TERMS 1000000
 
