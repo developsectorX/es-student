@@ -10,6 +10,7 @@
 #include "api/api.h"
 #include "block-task/block-task.h"
 #include "button-task/button-task.h"
+#include "capture-task/capture-task.h"
 #include "device/device.h"
 #include "firmware.h"
 #include "led-task/led-task.h"
@@ -251,33 +252,28 @@ static void cmd_profiling_reset(const command_t *command)
 #endif
 }
 
-static bool adc_command_busy(void)
-{
-    return platform_adc_busy() || telemetry_task_get_state() == TELEMETRY_STATE_RUN;
-}
-
-// напряжение на GP26 в platform, ответ voltage: <напряжение> V
+// напряжение на GP26, ответ voltage: <напряжение> V
 static void cmd_get_voltage(const command_t *command)
 {
     (void)command;
-    if (platform_adc_busy())
+    if (telemetry_task_channel_busy())
     {
         printf("error: adc busy\r\n");
         return;
     }
-    printf("voltage: %.3f V\r\n", platform_voltage_read());
+    printf("voltage: %.3f V\r\n", telemetry_task_read_voltage());
 }
 
-// температура в platform, ответ temp: <температура> C
+// температура кристалла, ответ temp: <температура> C
 static void cmd_get_temp(const command_t *command)
 {
     (void)command;
-    if (platform_adc_busy())
+    if (telemetry_task_channel_busy())
     {
         printf("error: adc busy\r\n");
         return;
     }
-    printf("temp: %.1f C\r\n", platform_temp_read());
+    printf("temp: %.1f C\r\n", telemetry_task_read_temp());
 }
 
 void api_print_telemetry(const telemetry_record_t *record)
@@ -316,7 +312,7 @@ static void cmd_tm_start(const command_t *command)
         }
     }
 
-    if (platform_adc_busy())
+    if (telemetry_task_channel_busy())
     {
         printf("error: adc busy\r\n");
         return;
@@ -410,7 +406,7 @@ static void cmd_cap_start(const command_t *command)
         return;
     }
 
-    if (telemetry_task_get_state() == TELEMETRY_STATE_RUN || !platform_capture_start(count, period_us))
+    if (telemetry_task_get_state() == TELEMETRY_STATE_RUN || !capture_task_start(count, period_us))
     {
         printf("error: adc busy\r\n");
         return;
@@ -425,7 +421,7 @@ static void cmd_cap_dump(const command_t *command)
     (void)command;
 
     platform_capture_t capture;
-    platform_capture_get(&capture);
+    capture_task_get(&capture);
     if (capture.count == 0u)
     {
         printf("error: no capture\r\n");
@@ -549,7 +545,13 @@ static void cmd_generate_tone(const command_t *command)
     }
 }
 
-// среднее и отклонение от среднего в кодах АЦП: среднеквадратичное и наибольшее
+// код АЦП в вольты: 12 разрядов, опора 3,3 В
+static float code_to_volts(float code)
+{
+    return code * 3.3f / 4096.0f;
+}
+
+// среднее и отклонение от среднего в кодах: среднеквадратичное и наибольшее
 static void block_stats(const uint16_t *samples, uint32_t count, float *mean, float *rms, float *peak)
 {
     uint32_t sum = 0u;
@@ -585,7 +587,7 @@ static void print_mic_bias(const uint16_t *samples, uint32_t count, uint32_t tim
     float rms = 0.0f;
     float peak = 0.0f;
     block_stats(samples, count, &mean, &rms, &peak);
-    printf("mic: bias %.3f V\r\n", platform_adc_volts(mean));
+    printf("mic: bias %.3f V\r\n", code_to_volts(mean));
 }
 
 static void print_mic_level(const uint16_t *samples, uint32_t count, uint32_t time_us)
@@ -596,8 +598,8 @@ static void print_mic_level(const uint16_t *samples, uint32_t count, uint32_t ti
     float peak = 0.0f;
     block_stats(samples, count, &mean, &rms, &peak);
 
-    float rms_mv = platform_adc_volts(rms) * 1000.0f;
-    float peak_mv = platform_adc_volts(peak) * 1000.0f;
+    float rms_mv = code_to_volts(rms) * 1000.0f;
+    float peak_mv = code_to_volts(peak) * 1000.0f;
     uint32_t window_ms = (uint32_t)(((uint64_t)count * 1000ull) / (uint64_t)PLATFORM_SAMPLE_RATE_HZ);
     printf("mic: level %.1f mV rms, peak %.1f mV, %lu ms\r\n",
            rms_mv, peak_mv, (unsigned long)window_ms);

@@ -29,3 +29,8 @@ void telemetry_task_stop(void);
 
 telemetry_state_t telemetry_task_get_state(void);
 uint32_t telemetry_task_get_period_ms(void);
+
+// одиночные измерения и проверка занятости канала измерений
+bool telemetry_task_channel_busy(void);
+float telemetry_task_read_voltage(void);
+float telemetry_task_read_temp(void);

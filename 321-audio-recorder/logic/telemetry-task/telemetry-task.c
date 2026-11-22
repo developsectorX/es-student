@@ -64,3 +64,18 @@ void telemetry_task_handle(void)
         }
     }
 }
+
+bool telemetry_task_channel_busy(void)
+{
+    return platform_adc_busy();
+}
+
+float telemetry_task_read_voltage(void)
+{
+    return platform_voltage_read();
+}
+
+float telemetry_task_read_temp(void)
+{
+    return platform_temp_read();
+}
